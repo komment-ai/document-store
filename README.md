@@ -4,13 +4,38 @@ A utility to manage 'chunking' a large array of file data into multiple smaller,
 
 Once initialised, the store can be used to retrieve the contents of a file or queried for the existence of a file within the store without loading the contents.
 
-# Installation
+Find out more about komment's open source projects at [komment.ai/open](https://komment.ai/open)
+
+## Prerequisites
+
+This is a Node.js and browser module available through the [npm registry](https://npmjs.com).
+
+To build and develop this library, [download and install Node.js](https://nodejs.org/en/download/).
+
+Installation is done using the [`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally).
+
+## Installation
 
 ```sh
-npm i @komment/document-store
+npm install @komment/document-store
 ```
 
-# Usage
+## Directory Layout
+
+Here is an overview of the top-level files contained in the repository:
+
+    |
+    +- dist  # Compiled version for use
+    |
+    +- src
+    |   |
+    |   +- index.ts  # Original TypeScript source for the module
+    |
+    +- test  # Jest unit tests
+    |
+    +- types # Type definitions
+
+## Usage
 
 Basic usage simply involves providing a method to handle file retrieval given a file name.
 
@@ -23,7 +48,7 @@ const documentStore = new DocumentStore("namespace", (fileName) => {
 await documentStore.loadSummary();
 ```
 
-## File content retrieval
+### File content retrieval
 
 ```javascript
 const fileContent = await documentStore.getFile(path);
@@ -31,7 +56,7 @@ if (!fileContent) return Error("No such file", { cause: 404 });
 return fileContent;
 ```
 
-## Files can be added to the store or updated within the store.
+### Files can be added to the store or updated within the store.
 
 ```javascript
 documentStore.addFile({
@@ -53,13 +78,13 @@ documentStore.updateFile({
 });
 ```
 
-## Updating metadata
+### Updating metadata
 
 ```javascript
 documentStore.setUpdatedAt(new Date());
 ```
 
-## Additional metadata
+### Additional metadata
 
 Sometimes it is necessary to add additional metadata to the document store. This can be defined at creation time
 
@@ -82,7 +107,7 @@ This metadata can then be updated as needed
 documentStore.updateMetadata({ additional: ["some", "data", "here"] });
 ```
 
-## Saving the updated store
+### Saving the updated store
 
 Once the store is in a state to be persisted, there are two methods to provide the output data:
 
@@ -96,7 +121,7 @@ const chunks = documentStore.outputChunks();
 - `summary` contains the contents of the lookup file
 - `chunks` An object containing chunk paths, each being an array containing the paths and contents of the actual files in the virtual file structure
 
-### Example output
+#### Example output
 
 ```javascript
 //summaryPath
@@ -133,5 +158,18 @@ const chunks = documentStore.outputChunks();
     ["docs/test.html", "test content"],
   ]
 }
-;
 ```
+
+## Tests
+
+    npm run test
+
+## How can I contribute?
+
+You want to contribute to this library? Welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+Copyright (C) 2024 Komment AI, Inc.
+
+MIT license, see the [LICENSE](LICENSE) file in the root of this project for license details.
