@@ -2,7 +2,11 @@
 
 A utility to manage 'chunking' a large array of file data into multiple smaller, indexed array with a quick lookup. Use it on the backend to manage storing and saving against a remote file store (such as a git repo or S3) and use it on the frontend to optimize caching and reduce file retrieval times.
 
-Once initialised, the store can be used to retrieve the contents of a file or queried for the existence of a file within the store without loading the contents.
+![Storage to DocumentStore](docs/storage.png)
+
+![Retrieval from DocumentStore](docs/retrieval.png)
+
+Once initialised, the store can be used to retrieve the contents of a file or queried for the existence of a file within the store without loading the contents. Chunks are lazy loaded and cached so a chunk isn't loaded until the contents of a file inside it are requested but when a chunk is loaded, all files contained within the same chunk are also loaded.
 
 Find out more about komment's open source projects at [komment.ai/open](https://komment.ai/open)
 
@@ -25,7 +29,7 @@ npm install @komment/document-store
 Here is an overview of the top-level files contained in the repository:
 
     |
-    +- dist  # Compiled version for use
+    +- docs
     |
     +- src
     |   |
@@ -60,8 +64,8 @@ return fileContent;
 
 ```javascript
 documentStore.addFile({
-  name: "mock-4",
-  path: "path/in/virtual-directory.js",
+  name: "mock-file",
+  path: "path/in/virtual-directory/mock-file.js",
   content: {
     description: "New file content",
   },
@@ -70,8 +74,8 @@ documentStore.addFile({
 
 ```javascript
 documentStore.updateFile({
-  name: "mock-4",
-  path: "path/in/virtual-directory.js",
+  name: "mock-file",
+  path: "path/in/virtual-directory/mock-file.js",
   content: {
     description: "Updated file content",
   },
@@ -111,7 +115,7 @@ documentStore.updateMetadata({ additional: ["some", "data", "here"] });
 
 Once the store is in a state to be persisted, there are two methods to provide the output data:
 
-```
+```javascript
 const summaryPath = documentStore.getChunkSummaryPath();
 const summary = documentStore.outputSummary();
 const chunks = documentStore.outputChunks();
