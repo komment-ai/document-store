@@ -1,86 +1,86 @@
-import { StructuredFile } from '../types/StructuredFile.js';
-import DocumentStore from '../src/index.js';
+import { StructuredFile } from "../types/StructuredFile";
+import DocumentStore from "../src/";
 
 const mockSummary = () =>
   Promise.resolve({
     meta: {
-      created_at: '2024-04-08T13:50:02.790Z',
-      updated_at: '2024-04-08T13:50:02.790Z',
-      pipelines: ['cd1d3bab-03db-494c-9e03-16ee456964fb'],
+      created_at: "2024-04-08T13:50:02.790Z",
+      updated_at: "2024-04-08T13:50:02.790Z",
+      pipelines: ["cd1d3bab-03db-494c-9e03-16ee456964fb"],
     },
-    lookup: [['src/index.js', 'src/database.js'], ['src/component/index.js']],
+    lookup: [["src/index.js", "src/database.js"], ["src/component/index.js"]],
   });
 
 const getFileMock = (chunkPath: string) => {
   switch (chunkPath) {
-    case '.komment/komment.json':
+    case ".komment/komment.json":
       return Promise.resolve(mockSummary());
-    case '.komment/00000.json':
-      return Promise.resolve(chunks()['00000']);
-    case '.komment/00001.json':
-      return Promise.resolve(chunks()['00001']);
+    case ".komment/00000.json":
+      return Promise.resolve(chunks()["00000"]);
+    case ".komment/00001.json":
+      return Promise.resolve(chunks()["00001"]);
     default:
       return Promise.resolve(mockSummary());
   }
 };
 
 const chunks = () => ({
-  '00000': [
+  "00000": [
     {
-      name: 'mock-1',
-      path: 'src/index.js',
+      name: "mock-1",
+      path: "src/index.js",
       content: {
-        description: 'duck',
+        description: "duck",
       },
     },
     {
-      name: 'mock-2',
-      path: 'src/database.js',
+      name: "mock-2",
+      path: "src/database.js",
       content: {
-        description: 'duckDB',
+        description: "duckDB",
       },
     },
   ],
-  '00001': [
+  "00001": [
     {
-      name: 'mock-3',
-      path: 'src/component/index.js',
+      name: "mock-3",
+      path: "src/component/index.js",
       content: {
-        description: 'Component Duck',
+        description: "Component Duck",
       },
     },
   ],
 });
 
 const newFileToAdd: StructuredFile = {
-  name: 'mock-4',
-  path: 'src/component/added.js',
+  name: "mock-4",
+  path: "src/component/added.js",
   content: {
-    description: 'Additional duck',
+    description: "Additional duck",
   },
 };
 const fileToUpdate: StructuredFile = {
-  name: 'mock-5',
-  path: 'src/component/added.js',
+  name: "mock-5",
+  path: "src/component/added.js",
   content: {
-    description: 'Updated duck',
+    description: "Updated duck",
   },
 };
 
-describe('DocumentStore', () => {
-  test('creates an empty DocumentStore', () => {
+describe("DocumentStore", () => {
+  test("creates an empty DocumentStore", () => {
     const newDocumentStore = new DocumentStore(() => Promise.resolve({}));
     const summary = newDocumentStore.outputSummary();
     expect(summary.lookup.length).toBe(0);
   });
-  test('loads a summary file', async () => {
+  test("loads a summary file", async () => {
     const newDocumentStore = new DocumentStore(mockSummary, { pipelines: [] });
 
     await newDocumentStore.loadSummary();
     const summary = newDocumentStore.outputSummary();
     expect(summary.lookup.length).toBe(2);
   });
-  test('loads all chunks', async () => {
+  test("loads all chunks", async () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
 
     newDocumentStore.CHUNK_SIZE = 2;
@@ -95,13 +95,13 @@ describe('DocumentStore', () => {
     const outputChunks = newDocumentStore.outputChunks();
     expect(Object.keys(outputChunks).length).toBe(2);
   });
-  test('get file content by path', async () => {
+  test("get file content by path", async () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
 
     newDocumentStore.CHUNK_SIZE = 2;
 
     await newDocumentStore.load();
-    const fileToGet = 'src/database.js';
+    const fileToGet = "src/database.js";
     const retrievedFile = await newDocumentStore.getFile(fileToGet);
     expect(retrievedFile?.path).toBe(fileToGet);
   });
@@ -109,10 +109,10 @@ describe('DocumentStore', () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
 
     expect(
-      async () => await newDocumentStore.getFile('src/index.js'),
+      async () => await newDocumentStore.getFile("src/index.js"),
     ).rejects.toThrow(Error);
   });
-  test('add a new file to the store', async () => {
+  test("add a new file to the store", async () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
     newDocumentStore.CHUNK_SIZE = 2;
 
@@ -124,7 +124,7 @@ describe('DocumentStore', () => {
 
     expect(retrievedFile?.path).toBe(fileToGet);
   });
-  test('updating a non-existent file adds it to the store', async () => {
+  test("updating a non-existent file adds it to the store", async () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
     newDocumentStore.CHUNK_SIZE = 2;
 
@@ -136,7 +136,7 @@ describe('DocumentStore', () => {
 
     expect(retrievedFile?.path).toBe(fileToGet);
   });
-  test('update an existing file in the store', async () => {
+  test("update an existing file in the store", async () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
     newDocumentStore.CHUNK_SIZE = 2;
 
@@ -152,7 +152,7 @@ describe('DocumentStore', () => {
       fileToUpdate.content.description,
     );
   });
-  test('adding an existing file updates it in the store', async () => {
+  test("adding an existing file updates it in the store", async () => {
     const newDocumentStore = new DocumentStore(getFileMock, { pipelines: [] });
     newDocumentStore.CHUNK_SIZE = 2;
 

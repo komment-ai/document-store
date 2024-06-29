@@ -1,7 +1,7 @@
 {
-  "name": "document-store",
+  "name": "@komment/document-store",
   "version": "1.0.0",
-  "description": "",
+  "description": "Manage storing large objects in multiple, indexed smaller file chunks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
