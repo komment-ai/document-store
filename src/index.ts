@@ -1,7 +1,7 @@
 /**
  * DocumentStore
  *
- * Manage adding, retrieving and updating docs in the .komment folder
+ * Manage adding, retrieving and updating docs in the .{namespace} folder
  *
  * Usage:
  * const getRemote = () => {} // method to fetch from remote store
@@ -12,15 +12,16 @@
  * await docStore.addFile(structuredFileContent);
  */
 
-import { IDocumentStore } from '../types/IDocumentStore';
-import { StructuredFile } from '../types/StructuredFile';
-import { Summary } from '../types/Summary';
+import { IDocumentStore } from "../types/IDocumentStore";
+import { StructuredFile } from "../types/StructuredFile";
+import { Summary } from "../types/Summary";
 
 const CHUNK_SIZE = 40;
-const DOCUMENT_STORE_VERSION = '1';
+const DOCUMENT_STORE_VERSION = "1";
 
 class DocumentStore implements IDocumentStore {
   CHUNK_SIZE: number;
+  namespace: string;
   getRemote: (...args: any[]) => Promise<Record<any, any>>;
   meta: {
     version: string;
@@ -28,6 +29,7 @@ class DocumentStore implements IDocumentStore {
     updated_at: Date;
     [key: string]: any;
   };
+  metaTemplate: Record<string, any>;
   lookup: string[][];
   chunks: StructuredFile[][];
   content: StructuredFile[];
@@ -39,7 +41,7 @@ class DocumentStore implements IDocumentStore {
   /**
    * @description Sets up an instance of a DocumentStore class with various parameters
    * such as getRemote and metadata. It also initializes
-   * internal arrays and objects to store chunk data, content, and pipeline information.
+   * internal arrays and objects to store chunk data, content, and other meta information.
    *
    * @param { (...args: any[]) => Promise<Record<any, any>> } getRemote - 3rd party library or service that provides the functionality
    * for generating high-quality documentation.
@@ -49,10 +51,15 @@ class DocumentStore implements IDocumentStore {
    *
    */
   constructor(
+    namespace: string,
     getRemote: (...args: any[]) => Promise<Record<any, any>>,
     additionalMeta: Record<string, any> = {},
   ) {
+    if (!namespace) throw new Error("namespace is required");
+    if (!getRemote) throw new Error("getRemote method is required");
+
     this.CHUNK_SIZE = CHUNK_SIZE;
+    this.namespace = namespace;
     this.getRemote = getRemote;
     this.meta = {
       version: DOCUMENT_STORE_VERSION,
@@ -60,6 +67,7 @@ class DocumentStore implements IDocumentStore {
       created_at: new Date(),
       ...additionalMeta,
     };
+    this.metaTemplate = additionalMeta;
     this.lookup = [];
     this.chunks = [];
     this.content = [];
@@ -90,7 +98,7 @@ class DocumentStore implements IDocumentStore {
         version: DOCUMENT_STORE_VERSION,
         created_at: new Date(),
         updated_at: new Date(),
-        pipelines: [],
+        ...this.metaTemplate,
       },
       lookup: [],
       chunks: [],
@@ -104,13 +112,15 @@ class DocumentStore implements IDocumentStore {
         summary = remoteSummary;
       }
     } catch (error) {
-      console.info('No docs stored yet');
+      console.info("No docs stored yet");
     }
 
     this.meta.version = summary?.meta?.version || DOCUMENT_STORE_VERSION;
     this.meta.created_at = summary?.meta?.created_at || new Date();
     this.meta.updated_at = summary?.meta?.updated_at || new Date();
-    this.meta.pipelines = summary?.meta?.pipelines || [];
+    Object.entries(this.metaTemplate).forEach(([key, value]) => {
+      this.meta[key] = summary?.meta?.[key] ?? value;
+    });
     this.lookup = summary.lookup || [];
     this.status.summary = true;
   };
@@ -131,14 +141,19 @@ class DocumentStore implements IDocumentStore {
     this.status.chunks = true;
   };
 
-  chunkIndexToChunkKey = (k: number): string => `${k}`.padStart(5, '0');
+  chunkIndexToChunkKey = (k: number): string => `${k}`.padStart(5, "0");
 
-  chunkKeyToChunkPath = (k: string): string => `.komment/${k}.json`;
+  chunkKeyToChunkPath = (k: string): string => `.${this.namespace}/${k}.json`;
 
-  getChunkSummaryPath = (): string => `.komment/komment.json`;
+  getChunkSummaryPath = (): string =>
+    `.${this.namespace}/${this.namespace}.json`;
 
-  addPipeline = (pipelineId: string): number =>
-    this.meta.pipelines.push(pipelineId);
+  updateMetadata = (additionalMeta: Record<string, any>) => {
+    this.meta = {
+      ...this.meta,
+      ...additionalMeta,
+    };
+  };
 
   fileIndexToChunkId = (fileIndex: number) =>
     Math.floor(fileIndex / CHUNK_SIZE);
@@ -185,7 +200,7 @@ class DocumentStore implements IDocumentStore {
    */
   getFile = async (path: string): Promise<StructuredFile | null> => {
     if (!this.status.summary)
-      throw Error('Must call .loadSummary before accessing files');
+      throw Error("Must call .loadSummary before accessing files");
 
     // calculate the chunk it is in
     const chunkIndex = this.getChunkFileIsIn(path);
@@ -201,7 +216,7 @@ class DocumentStore implements IDocumentStore {
     // );
 
     if (this.chunks[chunkIndex][fileIndexInChunk].path !== path) {
-      console.error('Incorrect chunk/lookup. Rebuild?');
+      console.error("Incorrect chunk/lookup. Rebuild?");
     }
 
     return this.chunks[chunkIndex][fileIndexInChunk];
@@ -272,7 +287,7 @@ class DocumentStore implements IDocumentStore {
    * the content and chunks arrays.
    */
   addFile = (file: StructuredFile): boolean => {
-    if (!this.status.chunks) throw Error('Must call .load before adding files');
+    if (!this.status.chunks) throw Error("Must call .load before adding files");
     if (!file || !file.path) return false;
 
     if (this.fileExists(file.path)) {
@@ -303,7 +318,7 @@ class DocumentStore implements IDocumentStore {
    */
   updateFile = async (file: StructuredFile): Promise<boolean> => {
     if (!this.status.chunks)
-      throw Error('Must call .load before updating files');
+      throw Error("Must call .load before updating files");
 
     if (!file) return false;
 
