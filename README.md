@@ -1,5 +1,7 @@
 # komment document store
 
+[![Node.js CI](https://github.com/komment-ai/document-store/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/komment-ai/document-store/actions/workflows/unit-tests.yml)
+
 A utility to manage 'chunking' a large array of file data into multiple smaller, indexed array with a quick lookup. Use it on the backend to manage storing and saving against a remote file store (such as a git repo or S3) and use it on the frontend to optimize caching and reduce file retrieval times.
 
 ![Storage to DocumentStore](docs/storage.png)
