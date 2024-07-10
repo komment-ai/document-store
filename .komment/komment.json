@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "version": "1",
+    "updated_at": "2024-07-10T16:34:38.998Z",
+    "created_at": "2024-07-10T16:34:39.374Z",
+    "pipelines": [
+      "c089e2e8-dd67-4bff-afef-c8f0f6b8a931"
+    ]
+  },
+  "lookup": [
+    [
+      "src/index.ts",
+      "tests/index.test.ts",
+      "types/IDocumentStore.d.ts",
+      "types/Meta.d.ts",
+      "types/StructuredFile.d.ts",
+      "types/Summary.d.ts",
+      "jest.config.js"
+    ]
+  ]
+}
