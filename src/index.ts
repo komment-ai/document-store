@@ -39,18 +39,19 @@ class DocumentStore implements IDocumentStore {
   };
 
   /**
-   * @description Sets up the necessary variables and properties for an instance of a
-   * class, including the namespace, getRemote method, meta data, and other properties.
+   * @description Sets up the necessary objects and properties for the DocuStore class,
+   * including the namespace, getRemote method, and metadata.
    * 
-   * @param {string} namespace - name of the document store or API endpoint where the
-   * content will be stored, and it is required to initialize the class.
+   * @param {string} namespace - namespace for which the code generator is creating
+   * documentation, and it is required to be provided.
    * 
-   * @param {(...args: any[]) => Promise<Record<any, any>>} getRemote - Promise of a
-   * remote data source that provides the documentation content.
+   * @param {(...args: any[]) => Promise<Record<any, any>>} getRemote - method that
+   * returns a Promise of a Record containing the document's data.
    * 
-   * @param {Record<string, any>} additionalMeta - metadata for the documentation
-   * generation, including the version number, creation and update dates, and other
-   * customizable fields.
+   * @param {Record<string, any>} additionalMeta - metadata that can be added to the
+   * document store, such as version number, created and updated at timestamps, and
+   * other custom data, which can be used to modify or extend the default behavior of
+   * the function.
    */
   constructor(
     namespace: string,
@@ -80,20 +81,20 @@ class DocumentStore implements IDocumentStore {
   }
 
   /**
-   * @description Updates the `updated_at` metadata field with the provided `updated_at`
-   * value.
+   * @description Sets the `updated_at` metadata for an instance, updating its value
+   * to the given `updated_at` date.
    * 
-   * @param {Date} updated_at - date and time when the document was last updated, and
-   * it is assigned to the `meta.updated_at` property of the document to maintain its
-   * historical records.
+   * @param {Date} updated_at - timestamp when the record was last updated, and it is
+   * assigned to the `meta.updated_at` property within the function to maintain an
+   * updated version of the record's metadata.
    */
   setUpdatedAt = (updated_at: Date) => {
     this.meta.updated_at = updated_at;
   };
 
   /**
-   * @description Retrieves a Summary object from the remote Document Store, updates
-   * the local metadata and chunk information, and sets the status to "summary".
+   * @description Retrieves remote documentation data and updates local metadata, chunk
+   * information, and lookup table.
    */
   loadSummary = async () => {
     let summary: Summary = {
@@ -129,8 +130,8 @@ class DocumentStore implements IDocumentStore {
   };
 
   /**
-   * @description Loads chunks of data if they are not already loaded, and sets the
-   * `chunks` status to `true`.
+   * @description Loads chunks of data from a database based on their indices, marking
+   * them as loaded in the status object.
    */
   load = async () => {
     if (!this.status.summary) {
@@ -153,12 +154,11 @@ class DocumentStore implements IDocumentStore {
     `.${this.namespace}/${this.namespace}.json`;
 
   /**
-   * @description Updates the metadata of an object by combining its own metadata and
-   * any additional metadata provided as an argument.
+   * @description Updates the `meta` property of an object by combining it with the
+   * provided `additionalMeta` property.
    * 
-   * @param {Record<string, any>} additionalMeta - additional metadata to be merged
-   * with the existing metadata of the object, which is then assigned to the `meta`
-   * property of the object.
+   * @param {Record<string, any>} additionalMeta - metadata to be added to the current
+   * instance of `Record`.
    */
   updateMetadata = (additionalMeta: Record<string, any>) => {
     this.meta = {
@@ -174,15 +174,16 @@ class DocumentStore implements IDocumentStore {
     this.chunks[chunkIndex]?.length > 0;
 
   /**
-   * @description Loads a specified chunk from a remote source and adds it to the
-   * internal content array if successful, returning `true`.
+   * @description Retrieves a specific chunk from a remote source and adds it to the
+   * current content array if not already loaded, returning a boolean indicating
+   * successful loading.
    * 
-   * @param {number} chunkIndex - 0-based index of the chunk being processed, which is
-   * used to determine whether the chunk has been loaded and to update the internal
-   * cache of chunks.
+   * @param {number} chunkIndex - 0-based index of a chunk within the total number of
+   * chunks in the StructuredFile collection, and is used to determine whether the chunk
+   * has already been loaded or not.
    * 
-   * @returns {Promise<boolean>} a boolean value indicating whether the chunk was
-   * successfully loaded or not.
+   * @returns {Promise<boolean>} a `Promise` that resolves to `true` if the chunk was
+   * successfully loaded, or `false` otherwise.
    */
   loadChunk = async (chunkIndex: number): Promise<boolean> => {
     if (!this.isChunkLoaded(chunkIndex)) {
@@ -201,14 +202,15 @@ class DocumentStore implements IDocumentStore {
     return true;
   };
   /**
-   * @description Retrieves a file from a summary and chunk index, checks if it's loaded,
-   * and returns the file or null if not found.
+   * @description Retrieves a file from a summary, checks if it is in the correct chunk,
+   * and returns the file data if found, otherwise returns null.
    * 
-   * @param {string} path - path of a file within the structured files, and it is used
-   * to identify the chunk and file index within that chunk where the file resides.
+   * @param {string} path - file path that is being searched for within the current
+   * chunk, and it is used to calculate the file's index within the chunk and return
+   * the corresponding file data.
    * 
-   * @returns {Promise<StructuredFile | null>} a `StructuredFile` object or `null` if
-   * the file is not found.
+   * @returns {Promise<StructuredFile | null>} a `StructuredFile` object representing
+   * the file or null if it's not found.
    */
   getFile = async (path: string): Promise<StructuredFile | null> => {
     if (!this.status.summary)
@@ -251,11 +253,12 @@ class DocumentStore implements IDocumentStore {
     this.lookup.findIndex((sub) => sub.includes(this.getFileHash(path))) > -1;
 
   /**
-   * @description Adds a new path to the end of the current lookup subtable or creates
-   * a new subtable if the last one is full.
+   * @description Updates the `lookup` subtable, adding a new entry to the last position
+   * if the last entry is full or reaching the maximum size, or adding a new entry to
+   * the last position of the previous entry otherwise.
    * 
-   * @param {string} path - subtable index or position where the given path should be
-   * added to the lookup table.
+   * @param {string} path - path to be looked up in the subtable, and determines whether
+   * a new subtable needs to be created or an existing one expanded.
    */
   addToEndOfLookup = (path: string) => {
     // If the last lookup subtable is full, create a new one
@@ -269,11 +272,11 @@ class DocumentStore implements IDocumentStore {
     }
   };
   /**
-   * @description Adds a file to either the beginning or end of an array of chunks based
-   * on if the last subtable is full or not.
+   * @description Updates a structured file's chunks based on its size, either adding
+   * a new chunk if the last one is empty or appending to it if not.
    * 
-   * @param {StructuredFile} file - file that needs to be added to the current chunk,
-   * and it is used to update the chunks array accordingly.
+   * @param {StructuredFile} file - file that is being processed and added to the
+   * `chunks` array in the structured file system.
    */
   addToEndOfChunks = (file: StructuredFile) => {
     // If the last lookup subtable is full, create a new one
@@ -287,15 +290,15 @@ class DocumentStore implements IDocumentStore {
     }
   };
   /**
-   * @description Adds a file to the end of a Structured File's chunks and content if
-   * the file exists, otherwise it throws an error.
+   * @description Adds a file to a Structured File instance's content and chunks,
+   * verifying that the file exists and that it has not been added previously.
    * 
-   * @param {StructuredFile} file - file to be added to the `StructuredFile` instance's
-   * content, and it is used to check if the file exists at the given path before adding
-   * it to the instance's content.
+   * @param {StructuredFile} file - file to be added to the StructuredFile object's
+   * content, and it is used to check if the file exists and to update its metadata in
+   * the object.
    * 
    * @returns {boolean} a boolean value indicating whether the file was successfully
-   * added to the StructuredFile instance.
+   * added to the list of files.
    */
   addFile = (file: StructuredFile): boolean => {
     if (!this.status.chunks) throw Error("Must call .load before adding files");
@@ -318,15 +321,15 @@ class DocumentStore implements IDocumentStore {
     return true;
   };
   /**
-   * @description Updates a file in a StructuredFile object by checking if it exists,
-   * loading it if necessary, and storing it in the appropriate chunk and file index
-   * within that chunk.
+   * @description Updates a file in a structured file, checking if it already exists,
+   * loading it if necessary, and storing it in the appropriate chunk and file index positions.
    * 
-   * @param {StructuredFile} file - file that is being updated or added to the
-   * StructuredFile object's content, and it must be a valid path for the file.
+   * @param {StructuredFile} file - file to be added, updated or retrieved, and it is
+   * used to verify its existence and
+   * check if it has already been loaded before updating the structured file's content.
    * 
-   * @returns {Promise<boolean>} a `Promise` that resolves to a boolean value indicating
-   * whether the file was successfully updated.
+   * @returns {Promise<boolean>} a boolean value indicating whether the specified file
+   * was successfully added to the structured file.
    */
   updateFile = async (file: StructuredFile): Promise<boolean> => {
     if (!this.status.chunks)
@@ -356,8 +359,8 @@ class DocumentStore implements IDocumentStore {
     return true;
   };
   /**
-   * @description Generates a summary of an object's properties, including the object's
-   * `meta` and `lookup` properties.
+   * @description Generates a summary object containing the `meta` and `lookup` properties
+   * based on the internal state of the calling instance.
    * 
    * @returns {Summary} an object containing `meta` and `lookup` properties.
    */
@@ -368,11 +371,12 @@ class DocumentStore implements IDocumentStore {
     };
   }
   /**
-   * @description Generates a record of chunks from a given content by slicing it into
-   * smaller parts and assigning each part to a unique key in the function's output.
+   * @description Takes a `content` array and returns an object with keys that correspond
+   * to file paths for chunks of the content, each chunk being a slice of the original
+   * array.
    * 
-   * @returns {Record<string, any>} a record of chunks extracted from the input content,
-   * each with a unique key and corresponding chunk of content.
+   * @returns {Record<string, any>} a Record<string, any> containing Key-Value pairs
+   * of chunks from the given content.
    */
   outputChunks(): Record<string, any> {
     const outputs: Record<string, any> = {};
