@@ -4,12 +4,12 @@
     "path": "src/index.ts",
     "content": {
       "structured": {
-        "description": "A DocumentStore class that manages structured data in chunks, ensuring each chunk contains files of a certain size. It allows for efficient insertion and updating of files, providing high-level functions such as `addFile`, `updateFile`, `outputSummary`, and `outputChunks`. The class utilizes JavaScript's built-in Map, Array, and Promise features to optimize storage and retrieval operations.",
+        "description": "A DocumentStore class that manages a collection of structured files and their associated metadata. It provides methods for adding files, updating existing files, and retrieving file data in a chunked format. The class uses an internal lookup table to efficiently locate and manage large amounts of structured data.",
         "items": [
           {
-            "id": "c2cf8602-37f8-e3a9-8044-7ad6893a539d",
+            "id": "20abaa5f-937f-59bd-cc42-fc66285ba272",
             "ancestors": [],
-            "description": "Manages a collection of structured files (e.g., code chunks) and provides methods for loading, storing, updating, and retrieving files. It maintains metadata, lookup tables, and chunked storage to efficiently manage large collections of files.",
+            "description": "Manages and organizes structured files into chunks, providing a way to load, update, and retrieve files from a remote data source while maintaining metadata about the files and their organization.",
             "interfaces": [
               "IDocumentStore"
             ],
@@ -19,12 +19,12 @@
               {
                 "name": "CHUNK_SIZE",
                 "type_name": "number",
-                "description": "1024 by default. It determines how many files can be stored in a single chunk, which affects how often new chunks need to be loaded or created."
+                "description": "100 by default, representing the maximum size of a chunk in terms of files or bytes, used for efficient storage and retrieval of large amounts of data."
               },
               {
                 "name": "namespace",
                 "type_name": "string",
-                "description": "Used to create a unique identifier for each structured file, which helps differentiate between files with the same name but different namespaces."
+                "description": "Used as a prefix for file paths to uniquely identify them within the document store. It serves as a namespace for the files, allowing multiple documents with similar file names to coexist in the store."
               },
               {
                 "name": "meta",
@@ -61,7 +61,7 @@
                     }
                   ]
                 },
-                "description": "Used to store the metadata of a document."
+                "description": "An object containing version, created_at, updated_at."
               },
               {
                 "name": "metaTemplate",
@@ -74,22 +74,22 @@
                     "any"
                   ]
                 },
-                "description": "Not shown in the given code snippet."
+                "description": "Used to specify a template for creating metadata objects."
               },
               {
                 "name": "lookup",
                 "type_name": "string[][]",
-                "description": "2D array where each sub-array represents a chunk of files, and each element within a sub-array is a file path hashed to be unique for that chunk."
+                "description": "Used to store subtables of file paths in a structured way, with each subtable representing a chunk and containing up to CHUNK_SIZE number of files."
               },
               {
                 "name": "chunks",
                 "type_name": "StructuredFile[][]",
-                "description": "2D array where each inner array represents a chunk of files. The `chunks` attribute stores chunks of files loaded from a remote provider or updated through file additions/removals."
+                "description": "2D array of chunks, where each chunk is a sub-array of files, grouped by size into fixed-size groups. Each file contains metadata such as path and name."
               },
               {
                 "name": "content",
                 "type_name": "StructuredFile[]",
-                "description": "Used to store the actual files (as a sequence of chunks) that are loaded from a provider. It's an array where each element represents a chunk of files, which is concatenated with the next chunk when loading from a provider."
+                "description": "2-dimensional array, where each inner array represents a chunk of structured files stored in the document store. The array's length corresponds to the total number of chunks."
               },
               {
                 "name": "status",
@@ -117,7 +117,7 @@
                     }
                   ]
                 },
-                "description": "Used to track the status of a document."
+                "description": "Used to check if the chunks are loaded."
               }
             ],
             "name": "DocumentStore",
@@ -133,37 +133,37 @@
             "docLength": null
           },
           {
-            "id": "86128721-b0a1-298a-0842-cf7e6d716572",
+            "id": "a45b8f5a-9134-509e-014b-28c8234d9bb9",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Initializes an instance with required namespace and getRemote method, and optional additional meta data. It sets properties such as CHUNK_SIZE, namespace, getRemote, meta, metaTemplate, lookup, chunks, content, and status.",
+            "description": "Initializes an instance with provided namespace, getRemote method, and optional additional metadata. It sets default properties like CHUNK_SIZE, updates metadata template, creates empty lists for lookup, chunks, content, and status, and validates required inputs.",
             "params": [
               {
                 "name": "namespace",
                 "type_name": "string*",
                 "optional": false,
-                "description": "Required, as indicated by the throw error if it is not provided. It is used to set the namespace property of the object instance.",
+                "description": "Required, as indicated by the error thrown if it is not provided. It specifies the namespace for the constructed object.",
                 "default_value": null
               },
               {
                 "name": "getRemote",
                 "type_name": "(...args: any[]) => Promise<Record<any, any>>*",
                 "optional": false,
-                "description": "Required to be passed to the constructor.",
+                "description": "Required, which means it should be provided when calling this function. It returns a promise that resolves to an object containing any number of key-value pairs.",
                 "default_value": null
               },
               {
                 "name": "additionalMeta",
                 "type_name": "Record<string, any>*",
                 "optional": true,
-                "description": "Used to provide additional metadata.",
+                "description": "Passed to create or update metadata for the namespace.",
                 "default_value": "{}"
               }
             ],
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore(\"my-namespace\", async () => {\n  // code here\n}, { myMetaKey: \"my-meta-value\" });\n",
+              "code": "const documentStore = new DocumentStore('my-namespace', async (...args: any[]) => Promise.resolve({} as Record<any, any>));\n",
               "description": ""
             },
             "name": null,
@@ -182,27 +182,27 @@
             "docLength": 12
           },
           {
-            "id": "a4d83aa3-b308-58a7-bd4e-bc8431268926",
+            "id": "eed61295-f174-17a7-ec4c-cb58fc691ef4",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Updates the `updated_at` property of the `meta` object within the `DocumentStore` class, setting it to the provided `Date` value.",
+            "description": "Updates the `updated_at` property of the `meta` object within an instance of the `DocumentStore` class with the specified `updated_at` Date value. This update operation sets the timestamp for when the document was last updated.",
             "params": [
               {
                 "name": "updated_at",
                 "default_value": null,
                 "optional": false,
                 "type_name": "Date*",
-                "description": "Assigned to the property `updated_at` of the object `this.meta`."
+                "description": "Assigned to the `updated_at` property of an object's meta attribute."
               }
             ],
             "returns": {
               "type_name": "void",
-              "description": "Equivalent to nothing or undefined."
+              "description": "Indicating that it does not return any specific value."
             },
             "usage": {
               "language": "typescript",
-              "code": "const store = new DocumentStore(getRemote, integration);\nstore.setUpdatedAt(new Date('2023-02-20T14:30:00.000Z'));\n",
+              "code": "const documentStore = new DocumentStore(getRemote, integration);\ndocumentStore.setUpdatedAt(new Date('2023-03-12T14:30:00.000Z'));\n",
               "description": ""
             },
             "name": "setUpdatedAt",
@@ -221,20 +221,20 @@
             "docLength": 7
           },
           {
-            "id": "4fd7d85e-3281-68a5-8344-c181f3798353",
+            "id": "48aa33b4-7cd9-7a86-de43-f10383c9c83c",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Loads and updates the document store's metadata, lookup data, and chunk information from a remote source or initializes with default values if no data is available.",
+            "description": "Loads or generates a document summary from a remote source and updates the local summary metadata. If no remote data is available, it creates an empty summary. The method then sets the local document store's version, creation date, and update date accordingly.",
             "params": [],
             "returns": {
               "type_name": "void",
-              "description": "A special type that represents the absence of any object value. It does not explicitly return a value but instead modifies some properties and variables within its scope."
+              "description": "Effectively a null response as it does not explicitly return any value from its execution path."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore(\n  async (...args: any[]) => Promise.resolve({ /* return remote summary */ }),\n  { /* set integration object */ }\n);\n\ndocumentStore.loadSummary();\n",
-              "description": "\nNote that `loadSummary` is called directly without any specific parameters as it is designed to be a part of the class."
+              "code": "const store = new DocumentStore(getRemote, metaTemplate);\nstore.loadSummary().then(() => {\n  console.info(\"Loaded summary\");\n});\n",
+              "description": ""
             },
             "name": "loadSummary",
             "location": {
@@ -252,12 +252,12 @@
             "docLength": 4
           },
           {
-            "id": "31565757-a8d4-918b-2b49-8e1104a73b61",
+            "id": "6e8752bb-2237-30b8-a046-032d9da485d9",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d",
-              "4fd7d85e-3281-68a5-8344-c181f3798353"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272",
+              "48aa33b4-7cd9-7a86-de43-f10383c9c83c"
             ],
-            "description": "Updates meta object with values from template or summary if available.",
+            "description": "Maps object entries to meta properties.",
             "name": null,
             "location": {
               "start": 121,
@@ -271,20 +271,20 @@
             "docLength": null
           },
           {
-            "id": "8dc0cabf-65f7-10a6-a346-625561de1f63",
+            "id": "4367802b-6ecd-7a92-9a42-af642f0eb924",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Asynchronously loads summary and chunks for a document store. If no summary exists, it first loads the summary. Then, it looks up chunk indices and loads each chunk individually before setting the `chunks` status to true.",
+            "description": "Asynchronously loads summary data and chunk indices from the `lookup` array. It then loads corresponding chunks using the `loadChunk` method, setting the `chunks` property to `true` once complete.",
             "params": [],
             "returns": {
               "type_name": "void",
-              "description": "0. It does not explicitly return a value."
+              "description": "Denoted by its absence of explicit return statement."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore('namespace', myGetRemote, { version: '1.0' });\ndocumentStore.load();\n",
-              "description": "\nThis code creates a new instance of `DocumentStore` with namespace `'namespace'`, gets remote function `myGetRemote`, and initializes metadata object `{ version: '1.0' }`. It then calls the `load()` method on this instance."
+              "code": "const store = new DocumentStore();\nstore.CHUNK_SIZE = 10;\nstore.namespace = 'namespace';\nstore.getRemote = async () => ({ data: 'mocked-data' });\nstore.meta = { version: '1.0', created_at: new Date(), updated_at: new Date() };\nstore.lookup = [['chunk-1'], ['chunk-2'], ['chunk-3']];\nawait store.load();\n",
+              "description": ""
             },
             "name": "load",
             "location": {
@@ -302,27 +302,27 @@
             "docLength": 3
           },
           {
-            "id": "9a5515c0-0da2-88b8-3b4f-4b794bec4405",
+            "id": "88d9f7cd-b624-f5b3-5f4c-5258e924cc6c",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Updates the metadata of an object by merging additional metadata with the existing metadata. The new metadata replaces any duplicate keys, and the updated metadata is stored in the `meta` property of the `DocumentStore` class.",
+            "description": "Updates the metadata object by merging additional metadata with the existing metadata. This method takes an object `additionalMeta` as input and assigns it to the `meta` property of the class, overwriting any duplicate keys.",
             "params": [
               {
                 "name": "additionalMeta",
                 "default_value": null,
                 "optional": false,
                 "type_name": "Record<string, any>*",
-                "description": "Used to merge with existing metadata. It is expected to be an object literal or a destructured object that contains additional key-value pairs to be added or updated in the metadata."
+                "description": "Expected to be an object containing metadata key-value pairs. This object will be merged with the existing `this.meta` object."
               }
             ],
             "returns": {
               "type_name": "void",
-              "description": "Indicating that it does not return any value or data."
+              "description": "An empty value that does not have any specific type."
             },
             "usage": {
               "language": "typescript",
-              "code": "const docStore = new DocumentStore();\ndocStore.updateMetadata({\n  'new-key': 'new-value',\n  'other-new-key': 'other-new-value'\n});\n",
+              "code": "const documentStore = new DocumentStore();\nconst meta = {\n  version: '1.0',\n  created_at: new Date('2022-01-01'),\n};\n\ndocumentStore.updateMetadata(meta);\n",
               "description": ""
             },
             "name": "updateMetadata",
@@ -338,28 +338,28 @@
             "docLength": null
           },
           {
-            "id": "c738d653-298f-9c93-8e43-462830102e72",
+            "id": "9284ee7e-bae1-9ca1-d747-de4645d3c6d1",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Asynchronously loads a chunk of structured data from a remote storage and concatenates it with the existing content, updating the internal state of the `DocumentStore` instance. If an error occurs during loading, it returns false; otherwise, it returns true indicating successful loading.",
+            "description": "Asynchronously loads a chunk of structured files from a remote location, concatenates it with the existing content, and stores it in a cache. If loading fails, it returns false; otherwise, it returns true.",
             "params": [
               {
                 "name": "chunkIndex",
                 "default_value": null,
                 "optional": false,
                 "type_name": "number*",
-                "description": "An index that identifies a specific chunk."
+                "description": "Used as an index to identify specific chunks, likely referring to their position or order within a larger dataset."
               }
             ],
             "returns": {
               "type_name": "Promise<boolean>*",
-              "description": "Resolved to a boolean indicating whether the chunk was loaded successfully (true) or an error occurred (false)."
+              "description": "Resolved to either true or false, indicating whether the chunk was successfully loaded or an error occurred during loading."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore();\n\ndocumentStore.loadChunk(1).then((result) => {\n    if (!result) {\n        // chunk failed to load\n    } else {\n        // chunk loaded successfully\n    }\n});\n",
-              "description": "\nThis example demonstrates the basic usage of the `loadChunk` method, which asynchronously loads a specific chunk and returns a promise indicating whether the loading was successful or not."
+              "code": "async main() {\n  const documentStore = new DocumentStore();\n  await documentStore.loadChunk(0);\n}\n",
+              "description": "\n\nNote: The `loadChunk` method is being called with `chunkIndex` set to 0."
             },
             "name": "loadChunk",
             "location": {
@@ -377,27 +377,27 @@
             "docLength": 11
           },
           {
-            "id": "e180c593-620b-4b97-b945-193e3a3ef7ba",
+            "id": "a7509732-c211-fea3-dd40-81a545469d37",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Asynchronously retrieves a file from the DocumentStore based on its path, ensuring that the required summary has been loaded and the corresponding chunk is available. If not, it loads the chunk before retrieving the file.",
+            "description": "Asynchronously retrieves a file from a structured storage, ensuring that the summary has been loaded and the necessary chunk is available. It calculates the chunk index and checks if the chunk is loaded; if not, it loads the chunk before returning the requested file.",
             "params": [
               {
                 "name": "path",
                 "default_value": null,
                 "optional": false,
                 "type_name": "string*",
-                "description": "The path to a file that needs to be retrieved from an asynchronous operation, which returns a promise resolving with either a structured file or null if the file could not be found."
+                "description": "Required for the function to calculate the chunk it belongs to, retrieve the file index within that chunk and verify the correctness of the chunk/lookup before returning the requested file."
               }
             ],
             "returns": {
               "type_name": "Promise<StructuredFile | null>*",
-              "description": "Either a `StructuredFile` object or null, indicating whether the requested file exists in the data structure."
+              "description": "Either a structured file object if the file exists or null if it does not."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore(\n  async (...args: any[]) => Promise.resolve({}), // implement getRemote method\n  { ... } // implement integration object\n);\n\ntry {\n  const file1 = await documentStore.getFile('path/to/file1');\n  if (!file1) {\n    console.error(\"File not found\");\n  }\n} catch (error) {\n  console.error(error);\n}\n",
+              "code": "const store = new DocumentStore(\n    // your getRemote implementation,\n    // your integration object\n);\ntry {\n    const file = await store.getFile('path/to/file');\n} catch (error) {\n    console.error(error);\n}\n",
               "description": ""
             },
             "name": "getFile",
@@ -416,28 +416,28 @@
             "docLength": 10
           },
           {
-            "id": "185cecdd-cc2a-a4b9-7a41-4e0719ec3fd4",
+            "id": "6fdbf6f5-e460-7a9f-274f-3af7d6dc9963",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Adds a path to the end of the last lookup subtable in the `lookup` array if it's not full, otherwise, creates a new subtable with the path. It ensures that each subtable has a maximum size defined by the `CHUNK_SIZE` property.",
+            "description": "Adds a path to the end of the lookup table. If the last subtable is full, it creates a new one; otherwise, it appends the path to the existing subtable. The lookup table stores paths and ensures efficient retrieval of related documents.",
             "params": [
               {
                 "name": "path",
                 "default_value": null,
                 "optional": false,
                 "type_name": "string*",
-                "description": "Passed to the function when it is called, indicating a path that needs to be added to the end of the lookup subtable."
+                "description": "Required for method execution."
               }
             ],
             "returns": {
               "type_name": "void",
-              "description": "0 if the last lookup subtable is full and a new one is created or null otherwise."
+              "description": "Indicating that it does not return any value."
             },
             "usage": {
               "language": "typescript",
-              "code": "const store = new DocumentStore(getRemote, integration);\nstore.addToEndOfLookup(\"path/to/file.txt\");\n",
-              "description": "\nIt adds a path to the last lookup subtable."
+              "code": "let store = new DocumentStore(getRemote);\nstore.addToEndOfLookup('path/to/document');\n",
+              "description": "\nIn this code, an instance of the DocumentStore class named \"store\" is created with a getRemote method. Then, the addToEndOfLookup method is called on that instance to add a path to the lookup array."
             },
             "name": "addToEndOfLookup",
             "location": {
@@ -455,27 +455,27 @@
             "docLength": 6
           },
           {
-            "id": "2153794b-f69f-639a-fb49-71df330b3aba",
+            "id": "52bbb15e-46c2-ea94-2e4d-11f3213741c1",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Adds a file to the end of an existing chunk or creates a new chunk if the current one is full, based on a predefined CHUNK_SIZE.",
+            "description": "Adds a file to the end of a chunk in an array of chunks, ensuring that each chunk does not exceed a specified size (`CHUNK_SIZE`). If the last chunk is full, it creates a new one.",
             "params": [
               {
                 "name": "file",
                 "default_value": null,
                 "optional": false,
                 "type_name": "StructuredFile*",
-                "description": "Expected to be passed when calling this function."
+                "description": "Implied to be an instance of the StructuredFile class, representing a structured file or chunk."
               }
             ],
             "returns": {
               "type_name": "void",
-              "description": "Equivalent to no return value. It does not explicitly return a value."
+              "description": "Equivalent to nothing or undefined."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore();\ndocumentStore.CHUNK_SIZE = 2;\ndocumentStore.addToEndOfChunks({/* structuredFile */});\n",
+              "code": "const docStore = new DocumentStore(getRemote, integration);\ndocStore.addToEndOfChunks(file1);\ndocStore.addToEndOfChunks(file2);\n",
               "description": ""
             },
             "name": "addToEndOfChunks",
@@ -494,27 +494,27 @@
             "docLength": 10
           },
           {
-            "id": "c83f0f80-4619-338e-8e4a-2d18c58185e1",
+            "id": "33e405f5-87bb-30ac-4c41-dfa39da16419",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Adds a structured file to the document store, checking if the store has been loaded and if the file exists before attempting to add it. If the file already exists, it updates its content; otherwise, it appends the file to the end of the lookup and chunks arrays.",
+            "description": "Adds a structured file to the `DocumentStore` instance, checking if the document is already present and updating it if necessary. If not, it appends the file path to lookup and chunks lists, and pushes the file to content array.",
             "params": [
               {
                 "name": "file",
                 "default_value": null,
                 "optional": false,
                 "type_name": "StructuredFile*",
-                "description": "Required to be non-null and have a valid path property. If either condition is not met, the function returns false without adding the file."
+                "description": "Required for adding files to the object's content. It represents an instance of a structured file that has a path property, which is checked before attempting to add the file."
               }
             ],
             "returns": {
               "type_name": "boolean*",
-              "description": "True if the file was successfully added and false otherwise."
+              "description": "True if a file is successfully added and false otherwise."
             },
             "usage": {
               "language": "typescript",
-              "code": "let myDocumentStore = new DocumentStore(myGetRemote);\nmyDocumentStore.load();\n\nlet myFile1 = {\n  path: 'path/to/file1',\n  //... other properties\n};\nlet result = myDocumentStore.addFile(myFile1);\n\nif (result) {\n    // File added successfully\n} else {\n    // Error occurred while adding the file\n}\n",
+              "code": "const documentStore = new DocumentStore(getRemote, integration);\ndocumentStore.load();\nconst file1 = { path: 'file1.txt', content: 'This is a test' };\ndocumentStore.addFile(file1); // Returns true if successful, false otherwise.\n",
               "description": ""
             },
             "name": "addFile",
@@ -533,28 +533,28 @@
             "docLength": 10
           },
           {
-            "id": "0780dbdd-fc9d-59bb-da43-5aa8edae0efb",
+            "id": "84bc96c1-4111-2b81-2f4b-b6dcda429c54",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Updates a file in the document store, handling cases where the file does not exist and ensuring that required chunks are loaded before updating. It returns a boolean indicating success or failure.",
+            "description": "Updates a file in the document store. It checks if the file exists, loads the corresponding chunk if necessary, and replaces the old file with the new one. The method returns a boolean indicating success or failure of the update operation.",
             "params": [
               {
                 "name": "file",
                 "default_value": null,
                 "optional": false,
                 "type_name": "StructuredFile*",
-                "description": "Required for updating files. It represents a structured file that needs to be added or updated in the storage system."
+                "description": "Required to be non-null. If null, the function returns false."
               }
             ],
             "returns": {
               "type_name": "Promise<boolean>*",
-              "description": "A promise that resolves to a boolean indicating whether the file was successfully updated. If an error occurs during the update process, the promise will resolve to false."
+              "description": "A promise that resolves to a boolean value. The boolean indicates whether the file was successfully updated (true) or not (false)."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore();\nconst file = { path: 'path/to/file', content: 'file contents' };\n\ndocumentStore.updateFile(file).then((updated) => {\n    if (updated) {\n        // File updated successfully\n    } else {\n        // File update failed\n    }\n});\n",
-              "description": ""
+              "code": "const docStore = new DocumentStore();\nconst file1: StructuredFile = {\n  path: 'path/to/file1',\n  content: 'content of file1'\n};\nconst result = await docStore.updateFile(file1);\n",
+              "description": "\n\nThis example demonstrates how to create a new instance of the `DocumentStore` class and use its `updateFile` method."
             },
             "name": "updateFile",
             "location": {
@@ -572,11 +572,11 @@
             "docLength": 10
           },
           {
-            "id": "836bf1f1-7b53-4ca1-1540-d4b67721f6a6",
+            "id": "31102eaa-3d44-67a5-2741-3e0a00973107",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Generates a summary object containing two properties, `meta` and `lookup`, which are references to corresponding properties within the `DocumentStore` class. The summary provides an overview of the document store's metadata and lookup data.",
+            "description": "Returns an object containing two properties, `meta` and `lookup`, with values taken from the `this.meta` and `this.lookup` attributes respectively, of the `DocumentStore` class. The returned object is a summary representation of the document store's metadata and lookup information.",
             "params": [],
             "returns": {
               "type_name": "Summary*",
@@ -584,8 +584,8 @@
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore(getRemote, integration);\nconst summary = documentStore.outputSummary();\n",
-              "description": ""
+              "code": "const store = new DocumentStore();\nstore.getRemote = () => Promise.resolve({ foo: 'bar' });\nconst summary = store.outputSummary();\n",
+              "description": "\nThis code creates a new instance of `DocumentStore`, assigns it a dummy getRemote method and then calls the outputSummary method, storing its result in the variable named 'summary'."
             },
             "name": "outputSummary",
             "location": {
@@ -603,20 +603,20 @@
             "docLength": 6
           },
           {
-            "id": "349f5a77-f842-32b3-064b-cf696fe5b471",
+            "id": "d2f4b060-bee9-f1ad-204e-9c076b20993e",
             "ancestors": [
-              "c2cf8602-37f8-e3a9-8044-7ad6893a539d"
+              "20abaa5f-937f-59bd-cc42-fc66285ba272"
             ],
-            "description": "Breaks down the content into smaller chunks based on a specified size, generates unique keys for each chunk, and stores them in a Record object along with their corresponding contents. The method then returns this Record object.",
+            "description": "Divides the content into chunks based on the `CHUNK_SIZE`, generates corresponding chunk keys, and stores these chunks in a record with their respective keys as property names. The method returns this record containing all output chunks.",
             "params": [],
             "returns": {
               "type_name": "Record<string, any>*",
-              "description": "A collection of key-value pairs where keys are strings and values can be of any data type, representing chunks of the input content with corresponding paths."
+              "description": "A mapping from string keys to arbitrary values. The returned record contains chunked data stored in the `outputs` object, where each key corresponds to a unique chunk identifier."
             },
             "usage": {
               "language": "typescript",
-              "code": "const documentStore = new DocumentStore(\n  async (...args: any[]) => Promise.resolve({}),\n  {\n    version: '1.0',\n    created_at: new Date(),\n    updated_at: new Date()\n  }\n);\n\nconst outputs = documentStore.outputChunks();\n\n// Outputs will be a Record where keys are string and values are array of bytes\n",
-              "description": ""
+              "code": "const documentStore = new DocumentStore(getRemote, integration);\nconst outputs = documentStore.outputChunks();\n",
+              "description": "\nThis code initializes a DocumentStore object with getRemote and integration parameters. Then it calls the outputChunks() method to generate chunked data and assigns it to the 'outputs' variable."
             },
             "name": "outputChunks",
             "location": {
