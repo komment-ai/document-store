@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1",
-    "updated_at": "2024-07-11T09:40:15.160Z",
+    "updated_at": "2024-07-11T10:57:11.815Z",
     "created_at": "2024-07-10T16:34:39.374Z",
     "pipelines": [
       "c089e2e8-dd67-4bff-afef-c8f0f6b8a931",
@@ -15,7 +15,8 @@
       "49ec0772-f24b-4603-9a27-a31b96963bdf",
       "e7cb8cbb-d12f-4f42-adcc-cdf3756c8071",
       "ce9a50b9-f4ec-4487-80f0-aff229eec487",
-      "1f76280f-f42b-4585-ad9d-7178240fd285"
+      "1f76280f-f42b-4585-ad9d-7178240fd285",
+      "ef450461-80fd-45dd-81f4-48c5335ad528"
     ]
   },
   "lookup": [
