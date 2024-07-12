@@ -20,8 +20,8 @@ const CHUNK_SIZE = 40;
 const DOCUMENT_STORE_VERSION = "1";
 
 /**
- * @description Provides a centralized storage and management system for files,
- * handling chunking, loading, and metadata for high-quality documentation generation.
+ * @description Stores and manages code documentation, providing an interface for
+ * loading, updating, and querying the content.
  * 
  * @implements {IDocumentStore}
  */
@@ -45,18 +45,19 @@ class DocumentStore implements IDocumentStore {
   };
 
   /**
-   * @description Sets up instance variables such as `CHUNK_SIZE`, `namespace`,
-   * `getRemote`, and `meta`, as well as initializing objects such as `lookup`, `chunks`,
-   * and `content`.
+   * @description Sets up various properties and variables required to store and manage
+   * documents, including the namespace, getRemote method, meta data, and chunk-related
+   * parameters.
    * 
-   * @param {string} namespace - Required to identify the name of a specific data store,
-   * such as a database or file system, where the chunked data will be stored.
+   * @param {string} namespace - Required for the construction of the Document Store
+   * constructor. It represents the unique name or identifier of the document store,
+   * which can be used to differentiate it from other document stores in a given environment.
    * 
-   * @param {(...args: any[]) => Promise<Record<any, any>>} getRemote - Used to fetch
-   * data from a remote source, such as an API or database, and return it as a promise.
+   * @param {(...args: any[]) => Promise<Record<any, any>>} getRemote - Used to retrieve
+   * data remotely.
    * 
-   * @param {Record<string, any>} additionalMeta - Used to store additional metadata
-   * about the document that can be used for customization or tracking purposes.
+   * @param {Record<string, any>} additionalMeta - Used to provide additional metadata
+   * for the document, such as version number or creation date.
    */
   constructor(
     namespace: string,
@@ -86,18 +87,18 @@ class DocumentStore implements IDocumentStore {
   }
 
   /**
-   * @description Updates the `updated_at` metadata field of the object, by setting it
+   * @description Updates the `updated_at` metadata field of an object, by setting it
    * to the provided `Date` value.
    * 
-   * @param {Date} updated_at - Used to update the `updated_at` metadata field of an entity.
+   * @param {Date} updated_at - Used to update the `updated_at` metadata of an object.
    */
   setUpdatedAt = (updated_at: Date) => {
     this.meta.updated_at = updated_at;
   };
 
   /**
-   * @description Retrieves and updates a summary of documents stored in the store,
-   * including metadata and chunk information.
+   * @description Retrieves and updates the summary data for the documents stored in
+   * the local store, using remote information if available.
    */
   loadSummary = async () => {
     let summary: Summary = {
@@ -126,8 +127,8 @@ class DocumentStore implements IDocumentStore {
     this.meta.created_at = summary?.meta?.created_at || new Date();
     this.meta.updated_at = summary?.meta?.updated_at || new Date();
     Object.entries(this.metaTemplate).forEach(([key, value]) => {
-      // Updates the `this.meta` object with values from `summary.meta` or the original
-      // value if `summary.meta` is null or undefined.
+      // Updates the `this.meta` object's property values based on
+      // the `summary.meta` object and an optional default value.
 
       this.meta[key] = summary?.meta?.[key] ?? value;
     });
@@ -136,8 +137,8 @@ class DocumentStore implements IDocumentStore {
   };
 
   /**
-   * @description Asyncily loads chunks of data from storage based on a provided list
-   * of chunk indices, setting the `chunks` property to `true` upon completion.
+   * @description Retrieves and loads chunks of data from the storage, based on their
+   * indices, and sets the `chunks` property to `true`.
    */
   load = async () => {
     if (!this.status.summary) {
@@ -160,12 +161,11 @@ class DocumentStore implements IDocumentStore {
     `.${this.namespace}/${this.namespace}.json`;
 
   /**
-   * @description Updates the metadata of the instance by combining its current metadata
-   * with additional metadata provided as an argument, assigning the resulting object
-   * to the `meta` property.
+   * @description Updates the metadata of an object by merging the existing metadata
+   * with additional metadata provided as an argument.
    * 
-   * @param {Record<string, any>} additionalMeta - Used to provide additional metadata
-   * to update the existing metadata of the object.
+   * @param {Record<string, any>} additionalMeta - Used to add or update metadata for
+   * the component.
    */
   updateMetadata = (additionalMeta: Record<string, any>) => {
     this.meta = {
@@ -181,12 +181,15 @@ class DocumentStore implements IDocumentStore {
     this.chunks[chunkIndex]?.length > 0;
 
   /**
-   * @description Asyncously checks if a chunk is loaded, retrieves it from the server
-   * if not, and appends it to the internal content and chunks arrays if successful.
+   * @description Loads a chunk of the document from the server and adds it to the
+   * document's content and chunks array if successful.
    * 
-   * @param {number} chunkIndex - Used to identify the specific chunk being loaded.
+   * @param {number} chunkIndex - Used to represent the index of the chunk being loaded,
+   * which serves as a reference for checking if the chunk has already been loaded or
+   * not.
    * 
-   * @returns {Promise<boolean>} True if the chunk was successfully loaded and false otherwise.
+   * @returns {Promise<boolean>} Resolved when the chunk is loaded successfully, and
+   * rejected when there is an error.
    */
   loadChunk = async (chunkIndex: number): Promise<boolean> => {
     if (!this.isChunkLoaded(chunkIndex)) {
@@ -205,14 +208,13 @@ class DocumentStore implements IDocumentStore {
     return true;
   };
   /**
-   * @description Retrieves a file from the store based on its path, loading the necessary
-   * chunks and files if not already loaded. It returns the file or `null` if not found.
+   * @description Retrieves a file from the store based on its path, checking if it is
+   * already loaded and returning it if found, or loading it if necessary.
    * 
-   * @param {string} path - Used to represent the file path that the function will check
-   * for existence and load if necessary.
+   * @param {string} path - Used to represent the file path that needs to be retrieved.
    * 
    * @returns {Promise<StructuredFile | null>} A promise that resolves to a StructuredFile
-   * object or null if the file cannot be found in the specified chunk.
+   * object or null if the file is not found in the specified chunk.
    */
   getFile = async (path: string): Promise<StructuredFile | null> => {
     if (!this.status.summary)
@@ -255,10 +257,11 @@ class DocumentStore implements IDocumentStore {
     this.lookup.findIndex((sub) => sub.includes(this.getFileHash(path))) > -1;
 
   /**
-   * @description Adds a new document path to the end of an existing lookup subtable
-   * or creates a new table if the last one is full, preserving the chunk size.
+   * @description Updates the lookup subtable based on the provided path. If the last
+   * subtable is full, create a new one; otherwise, append the path to the existing subtable.
    * 
-   * @param {string} path - Used to add a new element to the end of the lookup subtable.
+   * @param {string} path - Intended to represent a path to add to the end of the lookup
+   * table.
    */
   addToEndOfLookup = (path: string) => {
     // If the last lookup subtable is full, create a new one
@@ -272,10 +275,12 @@ class DocumentStore implements IDocumentStore {
     }
   };
   /**
-   * @description Manages the chunking of files based on file size, creating new chunks
-   * if the last one is full or appending to it otherwise.
+   * @description Adds a new file to the end of an array of chunks if the last one is
+   * full or if the current chunk is not full, and pushes it to the appropriate position
+   * in the chunk array.
    * 
-   * @param {StructuredFile} file - Used to add new files to an array of chunks for processing.
+   * @param {StructuredFile} file - Passed to add a file to an array of files, called
+   * chunks, within a larger data structure.
    */
   addToEndOfChunks = (file: StructuredFile) => {
     // If the last lookup subtable is full, create a new one
@@ -289,14 +294,16 @@ class DocumentStore implements IDocumentStore {
     }
   };
   /**
-   * @description Allows adding a file to the collection of documents, checking for
-   * file existence and properly updating the content array if successful.
+   * @description Adds a file to the collection of stored files. It first checks if the
+   * `status.chunks` property is set and if the input file exists at its path. If so,
+   * it updates the file in the collection and returns `true`. Otherwise, it appends
+   * the file to the end of the lookup table and chunks list and returns `true`.
    * 
-   * @param {StructuredFile} file - Used to represent a file that needs to be added to
-   * the content manager's chunks or lookups.
+   * @param {StructuredFile} file - Used to represent a file that is being added to the
+   * content library.
    * 
-   * @returns {boolean} True if the file was successfully added to the content array
-   * and false otherwise.
+   * @returns {boolean} `true` if the file was successfully added to the content, and
+   * `false` otherwise.
    */
   addFile = (file: StructuredFile): boolean => {
     if (!this.status.chunks) throw Error("Must call .load before adding files");
@@ -319,15 +326,13 @@ class DocumentStore implements IDocumentStore {
     return true;
   };
   /**
-   * @description Updates a file in the store by checking its existence, loading it if
-   * necessary, and storing it in the correct chunk and index position.
+   * @description Updates a file in the store by checking if it exists, loading it if
+   * necessary, and storing it in the appropriate chunk and index position.
    * 
-   * @param {StructuredFile} file - Used to represent a file within the application's
-   * data structure. Its purpose is to provide a reference to the file that needs to
-   * be updated.
+   * @param {StructuredFile} file - Used to represent a file that needs to be updated
+   * or added to the content library.
    * 
-   * @returns {Promise<boolean>} Ether true or false depending on whether the file was
-   * successfully updated or not.
+   * @returns {Promise<boolean>} Whether the file was updated successfully or not.
    */
   updateFile = async (file: StructuredFile): Promise<boolean> => {
     if (!this.status.chunks)
@@ -357,11 +362,10 @@ class DocumentStore implements IDocumentStore {
     return true;
   };
   /**
-   * @description Returns an object containing the `meta` and `lookup` properties, which
-   * are likely used to store and retrieve metadata and data for documents managed by
-   * the class.
+   * @description Returns an object containing `meta` and `lookup` properties, which
+   * are presumably used to summarize or represent the contents of the document store.
    * 
-   * @returns {Summary} An object containing two properties: `meta` and `lookup`.
+   * @returns {Summary} An object consisting of two properties: `meta` and `lookup`.
    */
   outputSummary(): Summary {
     return {
@@ -370,10 +374,12 @@ class DocumentStore implements IDocumentStore {
     };
   }
   /**
-   * @description Generates and returns an object containing chunks of the original
-   * document,keyed by their chunk paths.
+   * @description Generates an object with chunk-related metadata and content for each
+   * chunk in the document. The method iterates through the document's content, slices
+   * it into chunks, and assigns a unique identifier to each chunk.
    * 
-   * @returns {Record<string, any>} An object containing chunk data.
+   * @returns {Record<string, any>} An object where each key is a chunk path and the
+   * corresponding value is the contents of that chunk.
    */
   outputChunks(): Record<string, any> {
     const outputs: Record<string, any> = {};
