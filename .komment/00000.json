@@ -938,12 +938,12 @@
     "path": "types/Meta.d.ts",
     "content": {
       "structured": {
-        "description": "An interface called `Meta` that represents a metadata object. The interface has four properties: `version`, `created_at`, `updated_at`, and an optional property with any type of value. The `version` property is a string representing the version number, the `created_at` and `updated_at` properties are Date objects representing the creation and last update time of the metadata object.",
+        "description": "An interface called `Meta` that represents a metadata object with properties for version, created date, updated date, and arbitrary key-value pairs. The interface uses type annotations to specify the types of each property, including dates and objects.",
         "items": [
           {
-            "id": "ab4e3495-19b9-a8a0-7c4f-a600389893b7",
+            "id": "266813fd-c121-a8b2-4e45-53bac5206499",
             "ancestors": [],
-            "description": "Defines a set of properties that consist of a version, creation and update dates, and arbitrary data stored under key strings.",
+            "description": "Defines a data structure with four properties: `version`, `createdAt`, `updatedAt`, and an arbitrary key-value pair `[key: string]` where the value can be any type.",
             "name": "Meta",
             "location": {
               "start": 1,

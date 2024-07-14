@@ -1,6 +1,7 @@
 /**
- * @description Defines a set of properties that consist of a version, creation and
- * update dates, and arbitrary data stored under key strings.
+ * @description Defines a data structure with four properties: `version`, `createdAt`,
+ * `updatedAt`, and an arbitrary key-value pair `[key: string]` where the value can
+ * be any type.
  */
 export interface Meta {
   version: string;
