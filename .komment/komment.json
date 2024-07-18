@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "version": "1",
+    "updated_at": "2024-07-18T13:08:15.703Z",
+    "created_at": "2024-07-10T16:34:39.374Z",
+    "pipelines": [
+      "c089e2e8-dd67-4bff-afef-c8f0f6b8a931",
+      "83f3455e-fd11-4539-9bc0-da663fa2c85d",
+      "18b02909-d08f-4b13-9964-3b4ee9ccbda8",
+      "7c8b9933-05d6-4176-b7aa-418bf1abbade",
+      "4857c9e7-9349-41a8-96c5-56be5ffb04cf",
+      "75505a3a-f1af-4ca1-9174-9b908cdee0e4",
+      "db654c98-5128-44f7-8691-252c69b9b5b7",
+      "fb518d01-fd0a-40bb-8d37-2ff5990c023b",
+      "49ec0772-f24b-4603-9a27-a31b96963bdf",
+      "e7cb8cbb-d12f-4f42-adcc-cdf3756c8071",
+      "ce9a50b9-f4ec-4487-80f0-aff229eec487",
+      "1f76280f-f42b-4585-ad9d-7178240fd285",
+      "ef450461-80fd-45dd-81f4-48c5335ad528",
+      "dbb10926-033f-4543-b4cc-bee6999543f8",
+      "521fe478-f3d3-4440-81b8-31b85cb89a46",
+      "bd56018a-a4ab-43de-aa64-a02ed61b32be",
+      "344dea1f-37c5-4706-b964-90ffeed56096",
+      "c355b024-a5e5-4eea-b745-fd2482d6e5c6",
+      "532c71df-781e-414b-98ad-8f67da7424a6",
+      "5c864a2d-0ee3-4c2e-8392-299b19565254",
+      "e47a1503-66d2-402a-a043-4b6b405c390f",
+      "8644b83e-a319-4f94-b5f8-b999ebf633bc",
+      "62f2bdd7-6e44-42b4-b522-4dce3d99e5aa"
+    ]
+  },
+  "lookup": [
+    [
+      "src/index.ts",
+      "tests/index.test.ts",
+      "types/IDocumentStore.d.ts",
+      "types/Meta.d.ts",
+      "types/StructuredFile.d.ts",
+      "types/Summary.d.ts",
+      "jest.config.js"
+    ]
+  ]
+}
