@@ -44,7 +44,7 @@ class DocumentStore implements IDocumentStore {
    * internal arrays and objects to store chunk data, content, and other meta information.
    *
    * @param { (...args: any[]) => Promise<Record<any, any>> } getRemote - 3rd party library or service that provides the functionality
-   * for generating high-quality documentation.
+   * for loading remote files
    *
    * @param { Integration } integration - Integration object that provides information
    * about the integration of the code documentation with other systems or services.
