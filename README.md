@@ -20,12 +20,6 @@ To build and develop this library, [download and install Node.js](https://nodejs
 
 Installation is done using the [`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally).
 
-## Installation
-
-```sh
-npm install @komment/document-store
-```
-
 ## Directory Layout
 
 Here is an overview of the top-level files contained in the repository:
